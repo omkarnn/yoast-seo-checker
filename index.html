@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pre-publish SEO & Readability Checker</title>
+  <style>
+    .ysc {
+      --bg: #EEF1F6;
+      --surface: #fff;
+      --ink: #17202E;
+      --mute: #5E6A7E;
+      --line: #D9DFEA;
+      --accent: #3A4BD8;
+      --good: #1E8E52;
+      --ok: #D98200;
+      --bad: #D03A45;
+      --field: #F8F9FC;
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 12px;
+      background: #e2e8f0;
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .ysc, .ysc * {
+      box-sizing: border-box;
+    }
+
+    .ysc {
+      max-width: 1240px;
+      margin: 0 auto;
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .ysc header {
+      padding: 24px 20px 8px;
+      max-width: 1240px;
+      margin: auto;
+    }
+
+    .ysc h1 {
+      font-size: 1.5rem !important;
+      line-height: 1.2 !important;
+      font-weight: 700 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .ysc header p {
+      margin: 6px 0 0;
+      color: var(--mute);
+      font-size: 0.95rem;
+      max-width: 65ch;
+    }
+
+    .ysc main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+      align-items: start;
+      gap: 16px;
+      padding: 16px 20px 40px;
+      max-width: 1240px;
+      margin: auto;
+    }
+
+    .ysc .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .ysc label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin: 14px 0 4px;
+    }
+
+    .ysc label:first-child {
+      margin-top: 0;
+    }
+
+    .ysc label small {
+      font-weight: 400;
+      color: var(--mute);
+    }
+
+    .ysc input,
+    .ysc textarea {
+      width: 100%;
+      font: inherit;
+      color: var(--ink);
+      background: var(--field);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+    }
+
+    .ysc input:focus,
+    .ysc textarea:focus,
+    .ysc button:focus-visible,
+    .ysc summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .ysc textarea {
+      min-height: 320px;
+      resize: vertical;
+      font-size: 0.95rem;
+    }
+
+    .ysc .row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .ysc .meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--mute);
+      font-size: 0.82rem;
+      margin-top: 3px;
+    }
+
+    .ysc .bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--line);
+      margin-top: 4px;
+      overflow: hidden;
+    }
+
+    .ysc .bar i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--bad);
+      transition: width 0.2s;
+    }
+
+    .ysc button {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 7px 12px;
+    }
+
+    .ysc button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .ysc .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ysc .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .ysc .tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      padding: 10px 12px;
+    }
+
+    .ysc .tab[aria-selected="true"] {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+
+    .ysc .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex: none;
+      background: var(--line);
+    }
+
+    .ysc .good { --c: var(--good); }
+    .ysc .ok { --c: var(--ok); }
+    .ysc .bad { --c: var(--bad); }
+
+    .ysc .dot.good,
+    .ysc .dot.ok,
+    .ysc .dot.bad {
+      background: var(--c);
+    }
+
+    .ysc .tab b {
+      display: block;
+      line-height: 1.2;
+    }
+
+    .ysc .tab span {
+      font-size: 0.8rem;
+      color: var(--mute);
+    }
+
+    .ysc details {
+      border-top: 1px solid var(--line);
+      padding: 6px 0;
+    }
+
+    .ysc summary {
+      cursor: pointer;
+      font-weight: 700;
+      padding: 6px 0;
+    }
+
+    .ysc ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ysc li {
+      display: flex;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 0.93rem;
+    }
+
+    .ysc li .dot {
+      margin-top: 5px;
+      width: 11px;
+      height: 11px;
+    }
+
+    .ysc .stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--mute);
+      margin-bottom: 10px;
+    }
+
+    .ysc .stats b {
+      color: var(--ink);
+    }
+
+    .ysc .snip {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: #4d5156;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .ysc .snip .u {
+      font-size: 12px;
+      color: #202124;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ysc .snip .t {
+      font-size: 20px;
+      line-height: 1.3;
+      color: #1a0dab;
+      max-width: 600px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 2px 0;
+    }
+
+    .ysc .snip .d {
+      font-size: 14px;
+      line-height: 1.57;
+      max-height: 3.15em;
+      overflow: hidden;
+    }
+
+    .ysc .empty {
+      color: var(--mute);
+      padding: 8px 0;
+    }
+
+    .ysc .two {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1.4fr 1fr;
+    }
+
+    .ysc .kp {
+      margin-top: 14px;
+    }
+
+    .ysc .kp:first-child {
+      margin-top: 0;
+    }
+
+    .ysc .kp label {
+      margin-top: 0;
+    }
+
+    .ysc .tab div {
+      min-width: 0;
+    }
+
+    .ysc .tab b,
+    .ysc .tab span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<div class="ysc" id="ysc-app">
+  <header>
+    <h1>Pre-publish SEO &amp; readability checker</h1>
+    <p>Paste your draft before it goes live. Track a focus keyphrase plus two related keyphrases, each with a synonym. Checks follow Yoast-style SEO and readability analyses and update as you type. Everything runs locally in your browser.</p>
+  </header>
+  <main id="ysc-main">
+    <section class="card">
+      <div id="ysc-kps">
+        <div class="kp">
+          <label for="ysc-kw0">Focus keyphrase</label>
+          <div class="two">
+            <input id="ysc-kw0" placeholder="e.g. cold brew coffee" autocomplete="off">
+            <input id="ysc-sy0" aria-label="Focus keyphrase synonym" placeholder="Synonym (optional)" autocomplete="off">
+          </div>
+        </div>
+        <div class="kp">
+          <label for="ysc-kw1">Related keyphrase 1</label>
+          <div class="two">
+            <input id="ysc-kw1" placeholder="e.g. coffee ratio" autocomplete="off">
+            <input id="ysc-sy1" aria-label="Related keyphrase 1 synonym" placeholder="Synonym (optional)" autocomplete="off">
+          </div>
+        </div>
+        <div class="kp">
+          <label for="ysc-kw2">Related keyphrase 2</label>
+          <div class="two">
+            <input id="ysc-kw2" placeholder="e.g. steeping time" autocomplete="off">
+            <input id="ysc-sy2" aria-label="Related keyphrase 2 synonym" placeholder="Synonym (optional)" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <label for="ysc-title">SEO title</label>
+      <input id="ysc-title" placeholder="Page title shown in search results" autocomplete="off">
+      <div class="meta">
+        <span id="ysc-tw"></span>
+        <span>Aim for 400–600 px</span>
+      </div>
+      <div class="bar"><i id="ysc-twb"></i></div>
+
+      <label for="ysc-desc">Meta description</label>
+      <textarea id="ysc-desc" style="min-height:70px" placeholder="Short summary shown under the title in search results"></textarea>
+      <div class="meta">
+        <span id="ysc-dc"></span>
+        <span>Aim for 120–156 characters</span>
+      </div>
+      <div class="bar"><i id="ysc-dcb"></i></div>
+
+      <div class="row">
+        <div>
+          <label for="ysc-slug">URL slug</label>
+          <input id="ysc-slug" placeholder="cold-brew-coffee-guide" autocomplete="off">
+        </div>
+        <div>
+          <label for="ysc-dom">Your domain <small>(for internal links)</small></label>
+          <input id="ysc-dom" placeholder="example.com" autocomplete="off">
+        </div>
+      </div>
+
+      <label for="ysc-body">Content <small>(HTML or plain text with # headings, [links](url) and ![alt](img))</small></label>
+      <textarea id="ysc-body" placeholder="Paste your article here…"></textarea>
+
+      <div class="actions">
+        <button class="primary" id="ysc-sample">Load sample</button>
+        <button id="ysc-clear">Clear all</button>
+      </div>
+    </section>
+
+    <aside class="side card" aria-live="polite">
+      <div class="snip" id="ysc-snip">
+        <div class="u" id="ysc-su"></div>
+        <div class="t" id="ysc-st"></div>
+        <div class="d" id="ysc-sd"></div>
+      </div>
+      <div class="tabs" role="tablist" id="ysc-tabs"></div>
+      <div class="stats" id="ysc-stats"></div>
+      <div id="ysc-out">
+        <p class="empty">Loading the checker…</p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function() {
+  const root = document.getElementById('ysc-app');
+  const $ = s => root.querySelector(s.replace(/^#/, '#ysc-'));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const FW = new Set('a an the of in on at to for and or but nor with without by from into onto as is are was were be been being am it its this that these those i me my we our you your he him his she her they them their not no so than too very can could will would shall should may might must do does did have has had how what when where which who whom why if then there here about over under up down out off per via vs also just only some any each every more most other such own same both either neither'.split(' '));
+
+  const TRANS = ['after','afterward','afterwards','again','all in all','also','although','always','as a result','as well as','because','before','besides','but','consequently','conversely','equally','eventually','even though','finally','first','firstly','for example','for instance','for this reason','further','furthermore','hence','however','in addition','in conclusion','in contrast','in fact','in other words','in particular','in short','indeed','instead','last','lastly','later','likewise','meanwhile','moreover','namely','nevertheless','next','nonetheless','now','on the other hand','once','otherwise','overall','rather','second','secondly','shortly','similarly','since','so','soon','specifically','still','subsequently','such as','that is','then','thereafter','therefore','though','thus','to begin with','to sum up','third','unless','until','when','whenever','where','whereas','whereby','while','whilst','yet'];
+  const TRX = new RegExp('(^|[^\\p{L}])(' + TRANS.join('|') + ')(?![\\p{L}])', 'iu');
+
+  const AUX = new Set('am is are was were be being get gets got gotten getting'.split(' '));
+  const IRR = new Set('arisen awoken born borne beaten begun bent bitten blown broken brought built burnt bought caught chosen cut dealt done drawn driven drunk eaten fallen fought found flown forbidden forgotten forgiven frozen given grown hung heard hidden hit held hurt kept known laid led left lent lain lit lost made meant met paid put read ridden risen said seen sold sent set shaken shot shown shut sung sunk slept spoken spent spun split spread stolen struck sworn swept taken taught torn told thought thrown understood woken worn won written'.split(' '));
+  const NOTPP = /^(need|indeed|red|bed|seed|speed|feed|breed|hundred|shed|sled|weed|bleed|proceed|succeed|exceed|embed|naked|sacred|wicked|rugged|during)$/i;
+
+  const isPP = w => !(!w) && (IRR.has(w) || (/ed$/.test(w) && w.length > 3 && !NOTPP.test(w)));
+  const tok = s => s.match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu) || [];
+
+  const stem = w => {
+    w = w.toLowerCase().replace(/['’]s$/, '');
+    if (w.length < 4) return w;
+    const L = w.length;
+    w = w.replace(/ies$/, 'y').replace(/(ing|ed|es)$/, m => L > 5 ? '' : m).replace(/([^s])s$/, '$1');
+    return w.length > 3 ? w.replace(/e$/, '') : w;
+  };
+
+  const sents = s => s.replace(/\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|vs|etc|Inc|Ltd|St|No)\./g, '$1\u0001')
+    .replace(/(\d)\.(\d)/g, '$1\u0001$2')
+    .replace(/\b(e\.g|i\.e)\./gi, m => m.replace(/\./g, '\u0001'))
+    .replace(/([.!?…][”’)]?)\s+(?=[“’(]?[\p{Lu}\p{N}])/gu, '$1\u0002')
+    .split('\u0002')
+    .map(x => x.replace(/\u0001/g, '.'))
+    .filter(x => tok(x).length);
+
+  const syl = w => {
+    w = w.toLowerCase().replace(/[^a-z]/g, '');
+    if (!w) return 0;
+    if (w.length <= 3) return 1;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, '');
+    const m = (w.match(/[aeiouy]{1,2}/g) || []).length + (w.match(/ia|io|iu|eo|ua|uo/g) || []).length;
+    return Math.max(1, m);
+  };
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const px = s => {
+    ctx.font = '20px Arial';
+    return Math.round(ctx.measureText(s).width);
+  };
+
+  const cw = s => tok(s).filter(w => !FW.has(w.toLowerCase())).map(stem);
+
+  let K = [{ k: '', s: '' }, { k: '', s: '' }, { k: '', s: '' }], tab = 's0', R;
+
+  const vars = i => [K[i].k, ...K[i].s.split(',')].map(x => x.trim()).filter(Boolean).map(r => {
+    const f = tok(r).map(stem), c = cw(r);
+    return { r, f, c: c.length ? c : f };
+  });
+
+  const has = (t, vs) => {
+    const st = new Set(cw(t));
+    return vs.some(v => v.c.length && v.c.every(k => st.has(k)));
+  };
+
+  const cntSeq = (w, vs) => {
+    let n = 0;
+    vs.forEach(v => {
+      const c = v.c;
+      if (!c.length) return;
+      for (let i = 0; i <= w.length - c.length; i++) {
+        if (c.every((k, j) => w[i + j] === k)) {
+          n++;
+          i += c.length - 1;
+        }
+      }
+    });
+    return n;
+  };
+
+  function toHTML(src) {
+    if (/<\/?([a-z][\s\S]*>)/i.test(src)) return src;
+    const inl = t => esc(t)
+      .replace(/!\[([^\]]*)\]\(([^)]*)\)/g, '<img alt="$1" src="$2">')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    return src.split(/\n\s*\n/).map(b => {
+      b = b.trim();
+      if (!b) return '';
+      const h = b.match(/^(#{1,6})\s+(.*)$/s);
+      return h ? `<h${h[1].length}>${inl(h[2])}</h${h[1].length}>` : `<p>${inl(b.replace(/\n/g, ' '))}</p>`;
+    }).join('');
+  }
+
+  function analyze() {
+    const v = id => $('#' + id).value.trim();
+    const title = v('title'),
+          desc = v('desc'),
+          slug = v('slug').toLowerCase(),
+          dom = v('dom').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/\/.*$/, '');
+
+    K = [0, 1, 2].map(i => ({ k: v('kw' + i), s: v('sy' + i) }));
+
+    const html = toHTML($('#body').value).replace(/<\/(p|h[1-6]|li|div|td|th|tr|blockquote)>|<br\s*\/?>/gi, '$&\n');
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,style').forEach(n => n.remove());
+
+    const T = e => e.textContent.replace(/\s+/g, ' ').trim();
+    const blocks = [...doc.body.querySelectorAll('p,li')].map(T).filter(Boolean);
+    const pOnly = [...doc.body.querySelectorAll('p')].map(T).filter(Boolean);
+    const first = pOnly[0] || blocks[0] || '';
+    const heads = [...doc.body.querySelectorAll('h1,h2,h3,h4,h5,h6')];
+    const sub = heads.filter(h => /^H[23]$/.test(h.tagName)).map(T);
+    const all = T(doc.body), n = tok(all).length, ws = cw(all);
+    const imgs = [...doc.querySelectorAll('img')];
+    const S = (a, st, t) => a.push({ st, t });
+
+    const kpChecks = (i, focus) => {
+      const a = [], vs = vars(i), vk = vs.slice(0, 1);
+      sents(first).some(s => has(s, vs))
+        ? S(a, 'good', 'Keyphrase in introduction: Well done!')
+        : has(first, vs)
+          ? S(a, 'bad', 'Keyphrase in introduction: Your keyphrase or its synonyms appear in the first paragraph, but not within one sentence. Try to use all the words of one in a single sentence.')
+          : S(a, 'bad', 'Keyphrase in introduction: Your keyphrase or its synonyms do not appear in the first paragraph. Make sure the topic is clear immediately.');
+
+      const L = tok(K[i].k).length;
+      L <= 4
+        ? S(a, 'good', 'Keyphrase length: Good job!')
+        : S(a, 'bad', `Keyphrase length: The keyphrase is ${L} words long. That’s more than the recommended maximum of 4 words. Make it shorter!`);
+
+      const c = cntSeq(ws, vk),
+            mn = Math.max(2, Math.ceil(n * 0.005)),
+            mxm = Math.floor(n * 0.03),
+            tm = c === 1 ? 'time' : 'times';
+
+      if (n) {
+        c < mn
+          ? S(a, 'bad', `Keyphrase density: The keyphrase was found ${c} ${tm}. That’s less than the recommended minimum of ${mn} times for a text of this length. Focus on your keyphrase!`)
+          : (c * 100 / n > 3)
+            ? S(a, 'bad', `Keyphrase density: The keyphrase was found ${c} times. That’s more than the recommended maximum of ${mxm} times for a text of this length. Don’t overoptimize!`)
+            : S(a, 'good', `Keyphrase density: The keyphrase was found ${c} ${tm}. This is great!`);
+      }
+
+      if (n >= 150) {
+        const q = Math.ceil(ws.length / 5);
+        let run = 0, gap = 0;
+        for (let p = 0; p < 5; p++) {
+          run = cntSeq(ws.slice(p * q, (p + 1) * q), vs) > 0 ? 0 : run + 1;
+          gap = Math.max(gap, run);
+        }
+        gap >= 3
+          ? S(a, 'bad', 'Keyphrase distribution: Very uneven. Large parts of your text do not contain the keyphrase or its synonyms. Distribute them more evenly.')
+          : gap === 2
+            ? S(a, 'ok', 'Keyphrase distribution: Uneven. Some parts of your text do not contain the keyphrase or its synonyms. Distribute them more evenly.')
+            : S(a, 'good', 'Keyphrase distribution: Good job!');
+      }
+
+      const m = sub.filter(s => has(s, vs)).length,
+            r = sub.length ? m / sub.length : 0;
+
+      m === 0
+        ? S(a, 'bad', 'Keyphrase in subheading: Use more keyphrases or synonyms in your higher-level subheadings (H2 or H3)!')
+        : sub.length > 1 && r > 0.75
+          ? S(a, 'ok', `Keyphrase in subheading: ${Math.round(r * 100)}% of your higher-level subheadings reflect the topic of your copy. That’s too much. Don’t over-optimize!`)
+          : r < 0.3
+            ? S(a, 'ok', `Keyphrase in subheading: ${Math.round(r * 100)}% of your higher-level subheadings reflect the topic of your copy. Try to use the exact match of your keyphrase or synonyms in more of them.`)
+            : S(a, 'good', 'Keyphrase in subheading: Your higher-level subheadings reflect the topic of your copy. Good job!');
+
+      if (imgs.length) {
+        const ok = imgs.filter(im => {
+          const al = new Set(cw(im.getAttribute('alt') || ''));
+          return vs.some(x => x.c.length && x.c.filter(k => al.has(k)).length >= Math.ceil(x.c.length / 2));
+        }).length;
+        ok
+          ? S(a, 'good', 'Image Keyphrase: Good job!')
+          : S(a, 'ok', 'Image Keyphrase: Images on this page do not have alt attributes with at least half of the words from your keyphrase or synonyms. Fix that!');
+      }
+
+      if (!focus) return a;
+
+      const tc = cw(title);
+      let pos = -1;
+      vs.forEach(x => {
+        for (let j = 0; j <= tc.length - x.c.length; j++) {
+          if (x.c.length && x.c.every((k, y) => tc[j + y] === k)) {
+            if (pos < 0 || j < pos) pos = j;
+            break;
+          }
+        }
+      });
+
+      pos === 0
+        ? S(a, 'good', 'Keyphrase in SEO title: The exact match of the keyphrase appears at the beginning of the SEO title. Good job!')
+        : pos > 0
+          ? S(a, 'ok', 'Keyphrase in SEO title: The exact match of the keyphrase appears in the SEO title, but not at the beginning. Try to move it to the beginning.')
+          : has(title, vs)
+            ? S(a, 'bad', 'Keyphrase in SEO title: Does not contain the exact match. Try to write the exact match of your keyphrase in the SEO title.')
+            : S(a, 'bad', 'Keyphrase in SEO title: Not all the words from your keyphrase appear in the SEO title. Try to use the exact match of your keyphrase in the SEO title.');
+
+      if (desc) {
+        let d = cntSeq(cw(desc), vs);
+        if (!d && has(desc, vs)) d = 1;
+        d === 0
+          ? S(a, 'bad', 'Keyphrase in meta description: The meta description has been specified, but it does not contain the keyphrase. Fix that!')
+          : d <= 2
+            ? S(a, 'good', 'Keyphrase in meta description: Keyphrase or synonym appear in the meta description. Well done!')
+            : S(a, 'ok', `Keyphrase in meta description: The meta description contains the keyphrase ${d} times, which is over the advised maximum of 2 times. Limit that!`);
+      }
+
+      const sw = new Set(tok(slug.replace(/[-_\/.]/g, ' ')).map(stem)),
+            kc = vs[0].c,
+            mm = slug ? kc.filter(k => sw.has(k)).length : 0;
+
+      mm && mm === kc.length
+        ? S(a, 'good', 'Keyphrase in slug: Great work!')
+        : (mm / kc.length >= 0.5)
+          ? S(a, 'good', 'Keyphrase in slug: More than half of your keyphrase appears in the slug. That’s great!')
+          : S(a, 'bad', 'Keyphrase in slug: (Part of) your keyphrase does not appear in the slug. Change that!');
+
+      return a;
+    };
+
+    const gen = [];
+    if (!title) {
+      S(gen, 'bad', 'SEO title width: Please create an SEO title.');
+    } else {
+      const p = px(title);
+      p < 400
+        ? S(gen, 'ok', `SEO title width: The SEO title is too short (${p}px). Use the space to add keyphrase variations or create compelling call-to-action copy.`)
+        : p > 600
+          ? S(gen, 'ok', `SEO title width: The SEO title is wider than the viewable limit (${p}px of 600px). Try to make it shorter.`)
+          : S(gen, 'good', `SEO title width: Good job! (${p}px)`);
+    }
+
+    if (!desc) {
+      S(gen, 'bad', 'Meta description length: No meta description has been specified. Search engines will display copy from the page instead.');
+    } else {
+      desc.length < 120
+        ? S(gen, 'ok', `Meta description length: The meta description is too short (${desc.length} characters). Up to 156 characters are available. Use the space!`)
+        : desc.length > 156
+          ? S(gen, 'ok', `Meta description length: The meta description is over 156 characters (${desc.length}). To ensure the entire description is visible, shorten it.`)
+          : S(gen, 'good', 'Meta description length: Well done!');
+    }
+
+    if (slug.length > 40) {
+      S(gen, 'ok', 'Slug too long: the slug for this page is over 40 characters. Shorten it!');
+    }
+
+    n < 200
+      ? S(gen, 'bad', `Text length: The text contains ${n} words. This is far below the recommended minimum of 300 words. Add more content that is relevant for the topic.`)
+      : n < 250
+        ? S(gen, 'bad', `Text length: The text contains ${n} words. This is below the recommended minimum of 300 words. Add more content that is relevant for the topic.`)
+        : n < 300
+          ? S(gen, 'ok', `Text length: The text contains ${n} words. This is slightly below the recommended minimum of 300 words. Add a bit more copy.`)
+          : S(gen, 'good', `Text length: The text contains ${n} words. This is more than or equal to the recommended minimum of 300 words.`);
+
+    const links = [...doc.querySelectorAll('a[href]')]
+      .filter(a => !/^(mailto|tel|#|javascript)/i.test(a.getAttribute('href').trim()))
+      .map(a => ({ h: a.getAttribute('href').trim(), nf: /nofollow/i.test(a.getAttribute('rel') || '') }));
+
+    const isInt = h => /^(\/(?!\/)|\.\.?\/)/.test(h) || (dom && h.toLowerCase().replace(/^https?:\/\/(www\.)?/, '').startsWith(dom)) || !/^(https?:)?\/\//i.test(h);
+    const li = links.filter(l => isInt(l.h)), lo = links.filter(l => !isInt(l.h));
+
+    !li.length
+      ? S(gen, 'bad', 'Internal links: No internal links appear in this page, make sure to add some!')
+      : li.every(l => l.nf)
+        ? S(gen, 'ok', 'Internal links: The internal links in this page are all nofollowed.')
+        : S(gen, 'good', 'Internal links: You have enough internal links.');
+
+    !lo.length
+      ? S(gen, 'bad', 'Outbound links: No outbound links appear in this page. Add some!')
+      : lo.every(l => l.nf)
+        ? S(gen, 'ok', 'Outbound links: Only nofollowed outbound links appear on this page. Add some normal ones.')
+        : S(gen, 'good', 'Outbound links: Good job!');
+
+    imgs.length
+      ? S(gen, 'good', 'Images: Good job!')
+      : S(gen, 'bad', 'Images: No images appear on this page. Add some!');
+
+    const h1 = doc.querySelectorAll('h1').length - (doc.body.firstElementChild && doc.body.firstElementChild.tagName === 'H1' ? 1 : 0);
+    if (h1 > 0) {
+      S(gen, 'bad', 'Single title: H1s should only be used as your main title. Find all H1s in your text that aren’t your main title and change them to a subheading level!');
+    }
+
+    const s = K.map((x, i) => x.k
+      ? (i ? kpChecks(i, false) : kpChecks(0, true).concat(gen))
+      : (i ? null : [{ st: 'bad', t: 'Keyphrase length: No focus keyphrase was set for this page. Set a keyphrase in order to calculate your SEO score.' }].concat(gen))
+    );
+
+    const rd = [],
+          ss = blocks.flatMap(sents),
+          SN = ss.length,
+          PW = blocks.reduce((a, p) => a + tok(p).length, 0);
+    let fre = null;
+
+    if (SN && PW) {
+      const sy = blocks.reduce((a, p) => a + tok(p).reduce((b, w) => b + syl(w), 0), 0);
+      fre = Math.round((206.835 - 1.015 * (PW / SN) - 84.6 * (sy / PW)) * 10) / 10;
+      const lv = fre >= 90 ? 'very easy' : fre >= 80 ? 'easy' : fre >= 70 ? 'fairly easy' : fre >= 60 ? 'OK' : fre >= 50 ? 'fairly difficult' : fre >= 30 ? 'difficult' : 'very difficult';
+
+      fre >= 60
+        ? S(rd, 'good', `Flesch Reading Ease: The copy scores ${fre} in the test, which is considered ${lv} to read. Good job!`)
+        : fre >= 50
+          ? S(rd, 'ok', `Flesch Reading Ease: The copy scores ${fre} in the test, which is considered ${lv} to read. Try to make shorter sentences to improve readability.`)
+          : S(rd, 'bad', `Flesch Reading Ease: The copy scores ${fre} in the test, which is considered ${lv} to read. Try to make shorter sentences, using less difficult words to improve readability.`);
+
+      const lp = Math.round(ss.filter(x => tok(x).length > 20).length * 1000 / SN) / 10;
+      lp <= 25
+        ? S(rd, 'good', 'Sentence length: Great!')
+        : S(rd, lp <= 30 ? 'ok' : 'bad', `Sentence length: ${lp}% of the sentences contain more than 20 words, which is more than the recommended maximum of 25%. Try to shorten the sentences.`);
+
+      const lg = pOnly.filter(p => tok(p).length > 150).length;
+      lg
+        ? S(rd, 'bad', `Paragraph length: ${lg} of the paragraphs contain more than the recommended maximum number of words (150). Shorten your paragraphs!`)
+        : S(rd, 'good', 'Paragraph length: None of the paragraphs are too long. Great job!');
+
+      let grp = 0, mxr = 0;
+      blocks.forEach(b => {
+        const f = sents(b).map(x => (tok(x)[0] || '').toLowerCase());
+        let r = 1;
+        f.forEach((w, j) => {
+          if (j && w === f[j - 1]) {
+            r++;
+            if (r === 3) grp++;
+          } else {
+            r = 1;
+          }
+          mxr = Math.max(mxr, r);
+        });
+      });
+
+      grp
+        ? S(rd, 'bad', `Consecutive sentences: There is a text segment with ${mxr} consecutive sentences starting with the same word${grp > 1 ? ` (${grp} instances in total)` : ''}. Try to mix things up!`)
+        : S(rd, 'good', 'Consecutive sentences: There is enough variety in your sentences. That’s great!');
+
+      const pv = Math.round(ss.filter(x => {
+        const t = tok(x).map(w => w.toLowerCase());
+        return t.some((w, j) => AUX.has(w) && (isPP(t[j + 1]) || (/ly$/.test(t[j + 1] || '') && isPP(t[j + 2]))));
+      }).length * 1000 / SN) / 10;
+
+      pv <= 10
+        ? S(rd, 'good', 'Passive voice: You’re using enough active voice. That’s great!')
+        : S(rd, 'ok', `Passive voice: ${pv}% of the sentences contain passive voice, which is more than the recommended maximum of 10%. Try to use their active counterparts.`);
+
+      const tr = Math.round(ss.filter(x => TRX.test(x)).length * 1000 / SN) / 10;
+      tr >= 30
+        ? S(rd, 'good', 'Transition words: Well done!')
+        : S(rd, tr >= 20 ? 'ok' : 'bad', `Transition words: ${tr < 20 ? 'Only ' : ''}${tr}% of the sentences contain transition words, which is not enough. Use more of them.`);
+    } else {
+      S(rd, 'bad', 'Add paragraphs of text to see readability checks.');
+    }
+
+    if (n > 300) {
+      let wc = 0;
+      const st = [];
+      doc.body.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li').forEach(e => {
+        if (/^H/.test(e.tagName)) {
+          st.push(wc);
+          wc = 0;
+        } else {
+          wc += tok(e.textContent).length;
+        }
+      });
+      st.push(wc);
+      const mx = Math.max(...st), k = st.filter(x => x > 300).length;
+
+      !heads.length
+        ? S(rd, 'bad', 'Subheading distribution: You are not using any subheadings, although your text is rather long. Try and add some subheadings.')
+        : mx > 300
+          ? S(rd, mx > 350 ? 'bad' : 'ok', `Subheading distribution: ${k} section${k > 1 ? 's' : ''} of your text ${k > 1 ? 'are' : 'is'} longer than 300 words and ${k > 1 ? 'are' : 'is'} not separated by any subheadings. Add subheadings to improve readability.`)
+          : S(rd, 'good', 'Subheading distribution: Great job!');
+    }
+
+    return { s, rd, n, SN, fre, empty: !n };
+  }
+
+  const PT = { good: 9, ok: 6, bad: 3 };
+  const score = a => {
+    const p = a.reduce((x, r) => x + PT[r.st], 0) * 100 / (a.length * 9);
+    return { st: p > 70 ? 'good' : p > 40 ? 'ok' : 'bad', p: Math.round(p) };
+  };
+
+  function render() {
+    R = analyze();
+    const get = id => id === 'rd' ? R.rd : R.s[+id[1]];
+
+    $('#tabs').innerHTML = [['s0', 'SEO analysis'], ['s1', ''], ['s2', ''], ['rd', 'Readability']].map(([id, l]) => {
+      const a = get(id), sc = R.empty || !a ? { st: '', p: 0 } : score(a);
+      const name = id === 's1' || id === 's2' ? (K[+id[1]].k || 'Related keyphrase ' + id[1]) : l;
+      const sub = R.empty ? 'Waiting for content' : !a ? 'Not set' : ({ good: 'Good', ok: 'Needs improvement', bad: 'Needs work' })[sc.st] + ' · ' + sc.p + '%';
+      return `<button class="tab" role="tab" data-t="${id}" aria-selected="${tab === id}"><i class="dot ${sc.st}"></i><div><b>${esc(name)}</b><span>${sub}</span></div></button>`;
+    }).join('');
+
+    const a = get(tab);
+    $('#stats').innerHTML = `<span><b>${R.n}</b> words</span><span><b>${R.SN}</b> sentences</span>` + (R.fre != null ? `<span>Flesch <b>${R.fre}</b></span>` : '');
+
+    $('#out').innerHTML = R.empty
+      ? '<p class="empty">Paste your content on the left to see results.</p>'
+      : !a
+        ? '<p class="empty">Enter a related keyphrase on the left to analyze it. Related keyphrases are checked for introduction, length, density, distribution, subheadings and image alt text.</p>'
+        : [['bad', 'Problems'], ['ok', 'Improvements'], ['good', 'Good results']].map(([st, name]) => {
+            const it = a.filter(r => r.st === st);
+            return it.length ? `<details ${st !== 'good' ? 'open' : ''}><summary>${name} (${it.length})</summary><ul>${it.map(r => `<li><i class="dot ${st}"></i><span>${esc(r.t)}</span></li>`).join('')}</ul></details>` : '';
+          }).join('');
+
+    const dom = $('#dom').value.trim() || 'example.com',
+          slug = $('#slug').value.trim();
+
+    $('#su').textContent = dom + ' › ' + (slug || 'your-page');
+    $('#st').textContent = $('#title').value || 'Your SEO title appears here';
+    $('#sd').textContent = $('#desc').value || 'Your meta description appears here.';
+
+    const tp = px($('#title').value);
+    $('#tw').textContent = tp + ' px';
+    $('#twb').style.width = Math.min(100, tp / 6) + '%';
+    $('#twb').style.background = tp >= 400 && tp <= 600 ? 'var(--good)' : tp ? 'var(--ok)' : 'var(--bad)';
+
+    const dl = $('#desc').value.length;
+    $('#dc').textContent = dl + ' characters';
+    $('#dcb').style.width = Math.min(100, dl / 1.56) + '%';
+    $('#dcb').style.background = dl >= 120 && dl <= 156 ? 'var(--good)' : dl ? 'var(--ok)' : 'var(--bad)';
+  }
+
+  let tm;
+  const sched = () => {
+    clearTimeout(tm);
+    tm = setTimeout(render, 150);
+  };
+
+  $('#main').addEventListener('input', sched);
+
+  $('#tabs').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (b) {
+      tab = b.dataset.t;
+      render();
+    }
+  });
+
+  const IDS = ['kw0', 'sy0', 'kw1', 'sy1', 'kw2', 'sy2', 'title', 'desc', 'slug', 'body'];
+
+  $('#clear').onclick = () => {
+    IDS.forEach(i => $('#' + i).value = '');
+    render();
+  };
+
+  $('#sample').onclick = () => {
+    const set = {
+      kw0: 'cold brew coffee',
+      sy0: 'cold brew',
+      kw1: 'coffee ratio',
+      sy1: 'brew ratio',
+      kw2: 'steeping time',
+      sy2: 'steep time',
+      title: 'Cold Brew Coffee: A Simple Guide to Smooth Home Brewing',
+      desc: 'Learn how to make cold brew coffee at home. Our simple guide covers the coffee ratio, steeping time and storage so every batch tastes smooth.',
+      slug: 'cold-brew-coffee-guide',
+      dom: 'example.com'
+    };
+    Object.entries(set).forEach(([k, x]) => $('#' + k).value = x);
+    $('#body').value = `Cold brew coffee is easier to make than most people think. You only need coarse grounds, cold water and some patience. This guide walks you through every step.\n\n## Why choose cold brew coffee?\n\nCold brew is steeped slowly, so it tastes smoother and less bitter than hot coffee. It is also lower in acid. Many people find it gentler on the stomach. Furthermore, a single batch lasts for a week in the fridge.\n\n![A jar of cold brew coffee steeping](jar.jpg)\n\n## The right coffee ratio\n\nGrab a large jar, a fine strainer and a coarse grind. A coffee ratio of one part grounds to eight parts water works well for a concentrate. Because the water is cold, extraction takes much longer than usual.\n\n## How to get the steeping time right\n\nCombine the grounds and water, then stir gently. Cover the jar and leave it on the counter. The ideal steeping time is 12 to 18 hours. Next, strain the mixture twice. For more tips on grinding, read our [coffee grinder guide](/blog/best-coffee-grinders) or see the [SCA brewing standards](https://sca.coffee).\n\nYour cold brew should be stored in a sealed bottle. It is best enjoyed over ice. Dilute the concentrate with water or milk to taste.`;
+    render();
+  };
+
+  try {
+    render();
+  } catch (e) {
+    $('#out').innerHTML = '<p class="empty">Script error: ' + esc(e.message) + '</p>';
+  }
+})();
+</script>
+</body>
+</html>
