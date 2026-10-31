@@ -1,2 +1,5 @@
-# yoast-seo-checker
-Free Yoast SEO Checker that analyzes webpage content for on-page SEO and readability. Evaluate focus keywords, keyword density, synonyms, headings, meta titles, descriptions, content structure and readability. Identify optimization gaps and get actionable recommendations to improve search visibility and content performance.
+# Yoast SEO Checker
+
+[🚀 TRY THE LIVE TOOL](https://whatisdigitalmarketing.in/yoast-seo-checker/)
+
+Free Yoast SEO Checker to analyze on-page SEO, keyword optimization, metadata, content structure and readability. Identify optimization gaps and improve search visibility.
